@@ -1,0 +1,2 @@
+import {InstantiationService} from '@di'
+
