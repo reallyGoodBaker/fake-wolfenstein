@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "serve": "node ./tool/serve"
+    "serve": "node ./tool/serve",
+    "build": ""
   },
   "author": "",
   "license": "ISC",
