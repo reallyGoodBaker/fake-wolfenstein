@@ -1,9 +1,15 @@
 import { createIdentifier } from '../di/index.js';
+import { Vector } from '../engine/types.js';
 export const IRenderer = createIdentifier('renderer');
 export class Renderer {
     _ctx;
     _opt;
     _vsync = false;
+    _rendering = false;
+    _fov = 74;
+    constructor() {
+        this._initRenderFunction();
+    }
     setRenderOpt(opt) {
         this._opt = opt;
     }
@@ -13,7 +19,7 @@ export class Renderer {
     setVSyncEnable(bool) {
         this._vsync = bool;
     }
-    startRenderLoop() {
+    _initRenderFunction() {
         const vsync = this._vsync;
         let renderedPreviousFrame = false;
         let doShowFps = false;
@@ -27,7 +33,9 @@ export class Renderer {
                 if (vsync && !renderedPreviousFrame) {
                     return;
                 }
-                this._doRender();
+                if (this._rendering) {
+                    this._doRender();
+                }
                 if (doShowFps) {
                     fps = frame;
                     frame = 0;
@@ -49,7 +57,11 @@ export class Renderer {
             doShowFps = true;
         }, 1000);
     }
+    startRenderLoop() {
+        this._rendering = true;
+    }
     pauseRenderLoop() {
+        this._rendering = false;
     }
     setContext(ctx) {
         this._ctx = ctx;
@@ -62,6 +74,7 @@ export class Renderer {
         const opt = this._opt;
         const w = ctx.canvas.width;
         const h = ctx.canvas.height;
+        ctx.imageSmoothingEnabled = false;
         //sky
         ctx.save();
         ctx.fillStyle = opt.sky;
@@ -70,15 +83,38 @@ export class Renderer {
         ctx.fillStyle = opt.ground;
         ctx.fillRect(0, h / 2, w, h / 2);
         ctx.restore();
-        //this._castRay(opt, 0, 0, w, h, ctx)
-        for (let i = -37; i < 37; i++) {
-            this._castRay(opt, i, w, h, ctx);
+        const halfFovRad = this._fov * 0.0349;
+        const virtualAxisModulo = w / (2 * Math.tan(halfFovRad));
+        for (let i = 0; i < w; i++) {
+            const result = this._castRay(opt, Math.atan((i - w / 2) / virtualAxisModulo));
+            if (!result) {
+                continue;
+            }
+            const [scale, surface, offset] = result;
+            // console.log(offset)
+            const _h = h * scale / 100, cy = (h - _h) / 2;
+            ctx.save();
+            if (surface.backgroundColor) {
+                ctx.fillStyle = surface.backgroundColor;
+                ctx.fillRect(i, cy, 1, _h);
+            }
+            if (surface.source) {
+                let { source, clip } = surface;
+                if (source.complete) {
+                    clip = Array.isArray(clip)
+                        ? clip
+                        : [0, 0, source.naturalWidth, source.naturalHeight];
+                    const offsetPixel = ~~(0.5 * h * (clip[2] / clip[3]));
+                    let _offset = clip[0] + offset * offsetPixel;
+                    ctx.drawImage(source, (_offset % source.naturalWidth) % clip[2] + clip[0], clip[1], 1, clip[3] - clip[0], i, cy, 1, _h);
+                }
+            }
+            ctx.restore();
         }
     }
-    _castRay(opt, dr, width, height, ctx) {
+    _castRay(opt, dr) {
         const _v = opt.view;
-        const dx = Math.sin(dr * 3.14 / 180) * 10, dy = Math.cos(dr * 3.14 / 180) * 10;
-        const testRay = _v.assignVector({ dx, dy });
+        const testRay = _v.rotate(dr);
         const testPointDist = [];
         for (const surface of opt.surfaces) {
             const point = testRay.getCrossPoint(surface);
@@ -86,18 +122,17 @@ export class Renderer {
                 continue;
             }
             const dx = _v.x - point.x, dy = _v.y - point.y, len = Math.sqrt(dx ** 2 + dy ** 2);
-            testPointDist.push([len, surface]);
+            testPointDist.push([len, surface, point]);
         }
         const result = testPointDist.sort(([a], [b]) => a - b)[0];
         if (!result) {
-            return;
+            return null;
         }
-        const scale = Math.asin(1 / (result[0] + 1.1));
-        const w = 20, h = height * scale, cx = (dx / 6 * width / 2) + width / 2, cy = (height - h) / 2;
-        ctx.save();
-        ctx.fillStyle = result[1].backgroundColor;
-        ctx.fillRect(cx, cy, w, h);
-        ctx.restore();
-        // console.log(scale)
+        const [len, surface, point] = result;
+        // const scale = Math.tan(Math.asin(1 / (len + 1)))
+        const viewLen = Vector.getModulo(opt.view);
+        const scale = Math.tan(1.57 * (Math.max(viewLen - len, 0) / viewLen));
+        const _offset = Math.sqrt((surface.x - point.x) ** 2 + (surface.y - point.y) ** 2);
+        return [scale, surface, _offset];
     }
 }

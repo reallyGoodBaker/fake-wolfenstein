@@ -11,9 +11,9 @@ export interface IVector {
 export interface IRay extends IPoint, IVector {}
 
 export interface Surface extends IRay {
-    backgroundColor: string
-    source: string
-    clip: [number, number]
+    backgroundColor?: string
+    source?: HTMLImageElement
+    clip?: [number, number, number, number]
 }
 
 export class Vector implements IVector {
@@ -22,8 +22,7 @@ export class Vector implements IVector {
         public dy: number
     ) { }
 
-    static rotate(vec: IVector, deg: number) {
-        const radius = deg * 3.14 / 180
+    static rotate(vec: IVector, rad: number) {
         const {dx, dy} = vec
         const modulo = Math.sqrt(dx**2 + dy**2)
         let r1 = Math.acos(dx/modulo)
@@ -31,8 +30,22 @@ export class Vector implements IVector {
             r1 = 6.28 - r1
         }
 
-        vec.dx = Math.cos(r1 + radius) * modulo
-        vec.dy = Math.sin(r1 + radius) * modulo
+        return {
+            dx: Math.cos(r1 + rad) * modulo,
+            dy: Math.sin(r1 + rad) * modulo
+        }
+    }
+
+    static getModulo(vec: IVector) {
+        const {dx, dy} = vec
+        return Math.sqrt(dx**2 + dy**2)
+    }
+
+    static muilti(vec: IVector, ratio: number) {
+        return {
+            dx: vec.dx * ratio,
+            dy: vec.dy * ratio
+        }
     }
 }
 
@@ -76,7 +89,7 @@ export class Ray implements IRay {
         return false
     }
 
-    assignVector(vec: Vector) {
+    assignVector(vec: IVector) {
         return new Ray(
             this.x, this.y,
             this.dx + vec.dx,
@@ -84,7 +97,47 @@ export class Ray implements IRay {
         )
     }
 
+    moveVector(vec: IVector) {
+        return new Ray(
+            this.x + vec.dx,
+            this.y + vec.dy,
+            this.dx,
+            this.dy
+        )
+    }
+
+    getVector() {
+        return {
+            dx: this.dx,
+            dy: this.dy
+        }
+    }
+
+    move(vec: IVector) {
+        this.x += vec.dx
+        this.y += vec.dy
+    }
+
+    transfrom(move: IVector, rotation: number) {
+        if (rotation) {
+            this.rotate(rotation)
+        }
+
+        if (move) {
+            this.x += move.dx
+            this.y += move.dy
+        }
+    }
+
     changeVec(vec: Vector) {
+        return new Ray(
+            this.x, this.y,
+            vec.dx, vec.dy
+        )
+    }
+
+    rotate(rad: number) {
+        const vec = Vector.rotate(this, rad)
         return new Ray(
             this.x, this.y,
             vec.dx, vec.dy

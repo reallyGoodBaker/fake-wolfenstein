@@ -5,16 +5,27 @@ export class Vector {
         this.dx = dx;
         this.dy = dy;
     }
-    static rotate(vec, deg) {
-        const radius = deg * 3.14 / 180;
+    static rotate(vec, rad) {
         const { dx, dy } = vec;
         const modulo = Math.sqrt(dx ** 2 + dy ** 2);
         let r1 = Math.acos(dx / modulo);
         if (dy < 0) {
             r1 = 6.28 - r1;
         }
-        vec.dx = Math.cos(r1 + radius) * modulo;
-        vec.dy = Math.sin(r1 + radius) * modulo;
+        return {
+            dx: Math.cos(r1 + rad) * modulo,
+            dy: Math.sin(r1 + rad) * modulo
+        };
+    }
+    static getModulo(vec) {
+        const { dx, dy } = vec;
+        return Math.sqrt(dx ** 2 + dy ** 2);
+    }
+    static muilti(vec, ratio) {
+        return {
+            dx: vec.dx * ratio,
+            dy: vec.dy * ratio
+        };
     }
 }
 export class Ray {
@@ -42,7 +53,33 @@ export class Ray {
     assignVector(vec) {
         return new Ray(this.x, this.y, this.dx + vec.dx, this.dy + vec.dy);
     }
+    moveVector(vec) {
+        return new Ray(this.x + vec.dx, this.y + vec.dy, this.dx, this.dy);
+    }
+    getVector() {
+        return {
+            dx: this.dx,
+            dy: this.dy
+        };
+    }
+    move(vec) {
+        this.x += vec.dx;
+        this.y += vec.dy;
+    }
+    transfrom(move, rotation) {
+        if (rotation) {
+            this.rotate(rotation);
+        }
+        if (move) {
+            this.x += move.dx;
+            this.y += move.dy;
+        }
+    }
     changeVec(vec) {
+        return new Ray(this.x, this.y, vec.dx, vec.dy);
+    }
+    rotate(rad) {
+        const vec = Vector.rotate(this, rad);
         return new Ray(this.x, this.y, vec.dx, vec.dy);
     }
 }
