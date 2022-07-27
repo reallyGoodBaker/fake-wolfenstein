@@ -2,7 +2,6 @@ import { createIdentifier } from '@di'
 import { RenderOpt, IPoint, Surface, Vector } from '@engine/types'
 
 export interface IRenderer {
-    setVSyncEnable(bool: boolean): void
     setRenderScale(ratio: number): void
     startRenderLoop(): void
     pauseRenderLoop(): void
@@ -16,12 +15,11 @@ export class Renderer implements IRenderer {
 
     private _ctx?: CanvasRenderingContext2D
     private _opt?: RenderOpt
-    private _vsync: boolean = false
     private _rendering: boolean = false
     private _fov: number = 74
 
     constructor() {
-        this._initRenderFunction()
+        
     }
 
     setRenderOpt(opt: RenderOpt): void {
@@ -32,54 +30,31 @@ export class Renderer implements IRenderer {
         this._ctx?.scale(ratio, ratio)
     }
 
-    setVSyncEnable(bool: boolean): void {
-        this._vsync = bool
-    }
+    render() {
+        // let doShowFps = false
+        // let frame = 0
+        // let fps = 0
 
-    private _initRenderFunction() {
-        const vsync = this._vsync
-        let renderedPreviousFrame = false
-        let doShowFps = false
-        let frame = 0
-        let fps = 0
-
-        const nextTick = () => {
-            requestAnimationFrame(() => {
-                if (!this._ctx || !this._opt) {
-                    return
-                }
-
-                if (vsync && !renderedPreviousFrame) {
-                    return
-                }
-
-                if (this._rendering) {
-                    this._doRender()
-                }
-
-                if (doShowFps) {
-                    fps = frame
-                    frame = 0
-                    doShowFps = false
-                }
-                const ctx = this._ctx
-                ctx.save()
-                ctx.fillStyle = 'red'
-                ctx.font = '20px sans-serif'
-                ctx.fillText(fps + '', 0, 20)
-                ctx.restore()
-                frame++
-
-                renderedPreviousFrame = true
-                nextTick()
-            })
+        if (!this._ctx || !this._opt) {
+            return
         }
 
-        nextTick()
+        if (this._rendering) {
+            this._doRender()
+        }
 
-        setInterval(() => {
-            doShowFps = true
-        }, 1000)
+        // if (doShowFps) {
+        //     fps = frame
+        //     frame = 0
+        //     doShowFps = false
+        // }
+        // const ctx = this._ctx
+        // ctx.save()
+        // ctx.fillStyle = 'red'
+        // ctx.font = '20px sans-serif'
+        // ctx.fillText(fps + '', 0, 20)
+        // ctx.restore()
+        // frame++
     }
 
     startRenderLoop(): void {
@@ -152,7 +127,7 @@ export class Renderer implements IRenderer {
                         source,
                         (_offset % source.naturalWidth) % clip[2] + clip[0],
                         clip[1],
-                        1, clip[3] - clip[0],
+                        1, clip[3] - clip[1],
                         i, cy,
                         1, _h
                     )

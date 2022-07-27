@@ -110,12 +110,10 @@ export class GameLoop implements IGameLoop {
         })
 
         renderer.setRenderOpt(renderOpt as RenderOpt)
-        renderer.setVSyncEnable(true)
-        renderer.startRenderLoop()
 
         const v = renderOpt.view
 
-        const loop = () => setTimeout(() => {
+        const loop = () => requestAnimationFrame(() => {
             
             if (keys.w) {
                 v.move(Vector.muilti(v, 0.001))
@@ -136,7 +134,7 @@ export class GameLoop implements IGameLoop {
             // console.log(renderOpt.view)
 
             loop()
-        }, 10)
+        })
 
         loop()
     }

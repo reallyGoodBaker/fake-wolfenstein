@@ -4,58 +4,36 @@ export const IRenderer = createIdentifier('renderer');
 export class Renderer {
     _ctx;
     _opt;
-    _vsync = false;
     _rendering = false;
     _fov = 74;
-    constructor() {
-        this._initRenderFunction();
-    }
     setRenderOpt(opt) {
         this._opt = opt;
     }
     setRenderScale(ratio) {
         this._ctx?.scale(ratio, ratio);
     }
-    setVSyncEnable(bool) {
-        this._vsync = bool;
-    }
-    _initRenderFunction() {
-        const vsync = this._vsync;
-        let renderedPreviousFrame = false;
-        let doShowFps = false;
-        let frame = 0;
-        let fps = 0;
-        const nextTick = () => {
-            requestAnimationFrame(() => {
-                if (!this._ctx || !this._opt) {
-                    return;
-                }
-                if (vsync && !renderedPreviousFrame) {
-                    return;
-                }
-                if (this._rendering) {
-                    this._doRender();
-                }
-                if (doShowFps) {
-                    fps = frame;
-                    frame = 0;
-                    doShowFps = false;
-                }
-                const ctx = this._ctx;
-                ctx.save();
-                ctx.fillStyle = 'red';
-                ctx.font = '20px sans-serif';
-                ctx.fillText(fps + '', 0, 20);
-                ctx.restore();
-                frame++;
-                renderedPreviousFrame = true;
-                nextTick();
-            });
-        };
-        nextTick();
-        setInterval(() => {
-            doShowFps = true;
-        }, 1000);
+    render() {
+        // let doShowFps = false
+        // let frame = 0
+        // let fps = 0
+        if (!this._ctx || !this._opt) {
+            return;
+        }
+        if (this._rendering) {
+            this._doRender();
+        }
+        // if (doShowFps) {
+        //     fps = frame
+        //     frame = 0
+        //     doShowFps = false
+        // }
+        // const ctx = this._ctx
+        // ctx.save()
+        // ctx.fillStyle = 'red'
+        // ctx.font = '20px sans-serif'
+        // ctx.fillText(fps + '', 0, 20)
+        // ctx.restore()
+        // frame++
     }
     startRenderLoop() {
         this._rendering = true;
@@ -106,7 +84,7 @@ export class Renderer {
                         : [0, 0, source.naturalWidth, source.naturalHeight];
                     const offsetPixel = ~~(0.5 * h * (clip[2] / clip[3]));
                     let _offset = clip[0] + offset * offsetPixel;
-                    ctx.drawImage(source, (_offset % source.naturalWidth) % clip[2] + clip[0], clip[1], 1, clip[3] - clip[0], i, cy, 1, _h);
+                    ctx.drawImage(source, (_offset % source.naturalWidth) % clip[2] + clip[0], clip[1], 1, clip[3] - clip[1], i, cy, 1, _h);
                 }
             }
             ctx.restore();

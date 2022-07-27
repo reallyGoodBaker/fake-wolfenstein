@@ -9,7 +9,7 @@ const {port, redirect, mimeMap} = require('./serve.config')
 const distWatcher = debounce(() => doPathMap(), 400)
 const srcWatcher = debounce(() => {
     child_proces.exec('tsc', (err, out) => {
-        console.log('reloaded');
+        // console.log('reloaded');
     })
 })
 
