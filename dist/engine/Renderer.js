@@ -6,37 +6,40 @@ export class Renderer {
     _opt;
     _rendering = false;
     _fov = 74;
+    constructor() {
+    }
     setRenderOpt(opt) {
         this._opt = opt;
     }
     setRenderScale(ratio) {
         this._ctx?.scale(ratio, ratio);
     }
-    render() {
-        // let doShowFps = false
-        // let frame = 0
-        // let fps = 0
+    render = () => {
+        let doShowFps = true;
+        let frame = 0;
+        let fps = 0;
         if (!this._ctx || !this._opt) {
             return;
         }
         if (this._rendering) {
             this._doRender();
         }
-        // if (doShowFps) {
-        //     fps = frame
-        //     frame = 0
-        //     doShowFps = false
-        // }
-        // const ctx = this._ctx
-        // ctx.save()
-        // ctx.fillStyle = 'red'
-        // ctx.font = '20px sans-serif'
-        // ctx.fillText(fps + '', 0, 20)
-        // ctx.restore()
-        // frame++
-    }
+        if (doShowFps) {
+            fps = frame;
+            frame = 0;
+            doShowFps = false;
+        }
+        const ctx = this._ctx;
+        ctx.save();
+        ctx.fillStyle = 'red';
+        ctx.font = '20px sans-serif';
+        ctx.fillText(fps + '', 0, 20);
+        ctx.restore();
+        frame++;
+    };
     startRenderLoop() {
         this._rendering = true;
+        this.render();
     }
     pauseRenderLoop() {
         this._rendering = false;
@@ -89,6 +92,7 @@ export class Renderer {
             }
             ctx.restore();
         }
+        requestAnimationFrame(this.render);
     }
     _castRay(opt, dr) {
         const _v = opt.view;

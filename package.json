@@ -5,11 +5,14 @@
   "main": "index.js",
   "scripts": {
     "serve": "node ./tool/serve",
-    "build": "node ./tool/build"
+    "build": "npx tsc && node ./tool/pathMap"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "typescript": "~4.9.5"
   }
 }

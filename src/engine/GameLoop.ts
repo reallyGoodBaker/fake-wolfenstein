@@ -103,7 +103,7 @@ export class GameLoop implements IGameLoop {
             }
         })
         window.addEventListener('mousemove', ev => {
-            keys.mh -= ev.movementX * 0.001
+            keys.mh -= ev.movementX * 0.0015
         })
         window.addEventListener('mousedown', () => {
             document.body.requestPointerLock()
@@ -116,16 +116,16 @@ export class GameLoop implements IGameLoop {
         const loop = () => requestAnimationFrame(() => {
             
             if (keys.w) {
-                v.move(Vector.muilti(v, 0.001))
+                v.move(Vector.muilti(v, 0.0005))
             }
             if (keys.s) {
-                v.move(Vector.muilti(v, -0.001))
+                v.move(Vector.muilti(v, -0.0005))
             }
             if (keys.a) {
-                v.move(Vector.rotate(Vector.muilti(v, 0.001), 1.57))
+                v.move(Vector.rotate(Vector.muilti(v, 0.0005), 1.57))
             }
             if (keys.d) {
-                v.move(Vector.rotate(Vector.muilti(v, -0.001), 1.57))
+                v.move(Vector.rotate(Vector.muilti(v, -0.0005), 1.57))
             }
             const {dx, dy} = Vector.rotate(v, keys.mh)
             v.dx = dx
@@ -136,6 +136,7 @@ export class GameLoop implements IGameLoop {
             loop()
         })
 
+        renderer.startRenderLoop()
         loop()
     }
 }

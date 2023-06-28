@@ -5,12 +5,13 @@ export class Vector {
         this.dx = dx;
         this.dy = dy;
     }
+    static doublePI = Math.PI * 2;
     static rotate(vec, rad) {
         const { dx, dy } = vec;
         const modulo = Math.sqrt(dx ** 2 + dy ** 2);
         let r1 = Math.acos(dx / modulo);
         if (dy < 0) {
-            r1 = 6.28 - r1;
+            r1 = this.doublePI - r1;
         }
         return {
             dx: Math.cos(r1 + rad) * modulo,

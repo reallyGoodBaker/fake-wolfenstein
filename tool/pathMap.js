@@ -26,8 +26,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs = __importStar(require("fs"));
-const path = __importStar(require("path"));
+const fs = require("fs");
+const path = require("path");
 //此文件默认路径"/out/pathMap.js"
 //映射时从相对于此文件的这个位置开始遍历文件
 const MAP_ENTRY = path.resolve(__dirname, '../dist');
@@ -56,7 +56,7 @@ function fileForeach(dir, handler) {
         const realPath = pathJoin(dir, _file);
         const stat = fs.statSync(realPath);
         if (stat.isFile() && matchSuffix(_file, matchedSuffix)) {
-            fs.writeFile(realPath, handler.call(null, fs.readFileSync(realPath).toString(), pathJoin(realPath, '../')), () => null);
+            fs.writeFile(realPath, handler.call(null, fs.readFileSync(realPath).toString(), pathJoin(realPath, '../')), err => {});
         }
         if (stat.isDirectory()) {
             fileForeach(realPath, handler);
@@ -97,5 +97,5 @@ async function main() {
     };
     fileForeach(MAP_ENTRY, rewriteRequires);
 }
-// main();
+main();
 module.exports = main

@@ -30,10 +30,10 @@ export class Renderer implements IRenderer {
         this._ctx?.scale(ratio, ratio)
     }
 
-    render() {
-        // let doShowFps = false
-        // let frame = 0
-        // let fps = 0
+    render = () => {
+        let doShowFps = true
+        let frame = 0
+        let fps = 0
 
         if (!this._ctx || !this._opt) {
             return
@@ -43,22 +43,23 @@ export class Renderer implements IRenderer {
             this._doRender()
         }
 
-        // if (doShowFps) {
-        //     fps = frame
-        //     frame = 0
-        //     doShowFps = false
-        // }
-        // const ctx = this._ctx
-        // ctx.save()
-        // ctx.fillStyle = 'red'
-        // ctx.font = '20px sans-serif'
-        // ctx.fillText(fps + '', 0, 20)
-        // ctx.restore()
-        // frame++
+        if (doShowFps) {
+            fps = frame
+            frame = 0
+            doShowFps = false
+        }
+        const ctx = this._ctx
+        ctx.save()
+        ctx.fillStyle = 'red'
+        ctx.font = '20px sans-serif'
+        ctx.fillText(fps + '', 0, 20)
+        ctx.restore()
+        frame++
     }
 
     startRenderLoop(): void {
         this._rendering = true
+        this.render()
     }
 
     pauseRenderLoop(): void {
@@ -138,6 +139,7 @@ export class Renderer implements IRenderer {
 
         }
 
+        requestAnimationFrame(this.render)
     }
 
     private _castRay(opt: RenderOpt, dr: number): [number, Surface, number] | null {

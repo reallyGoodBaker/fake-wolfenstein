@@ -100,7 +100,7 @@ let GameLoop = class GameLoop {
             }
         });
         window.addEventListener('mousemove', ev => {
-            keys.mh -= ev.movementX * 0.001;
+            keys.mh -= ev.movementX * 0.0015;
         });
         window.addEventListener('mousedown', () => {
             document.body.requestPointerLock();
@@ -109,16 +109,16 @@ let GameLoop = class GameLoop {
         const v = renderOpt.view;
         const loop = () => requestAnimationFrame(() => {
             if (keys.w) {
-                v.move(Vector.muilti(v, 0.001));
+                v.move(Vector.muilti(v, 0.0005));
             }
             if (keys.s) {
-                v.move(Vector.muilti(v, -0.001));
+                v.move(Vector.muilti(v, -0.0005));
             }
             if (keys.a) {
-                v.move(Vector.rotate(Vector.muilti(v, 0.001), 1.57));
+                v.move(Vector.rotate(Vector.muilti(v, 0.0005), 1.57));
             }
             if (keys.d) {
-                v.move(Vector.rotate(Vector.muilti(v, -0.001), 1.57));
+                v.move(Vector.rotate(Vector.muilti(v, -0.0005), 1.57));
             }
             const { dx, dy } = Vector.rotate(v, keys.mh);
             v.dx = dx;
@@ -127,6 +127,7 @@ let GameLoop = class GameLoop {
             // console.log(renderOpt.view)
             loop();
         });
+        renderer.startRenderLoop();
         loop();
     }
 };

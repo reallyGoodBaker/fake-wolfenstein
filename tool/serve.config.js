@@ -10,7 +10,6 @@ module.exports = {
         'js': 'application/javascript',
         'html': 'text/html',
         'css': 'text/css',
-    
     },
 
 }
