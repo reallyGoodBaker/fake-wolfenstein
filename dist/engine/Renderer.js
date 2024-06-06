@@ -1,12 +1,24 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 import { createIdentifier } from '../di/index.js';
 import { Vector } from '../engine/types.js';
+import { IInput } from '../engine/Input.js';
 export const IRenderer = createIdentifier('renderer');
-export class Renderer {
+let Renderer = class Renderer {
+    input;
     _ctx;
     _opt;
     _rendering = false;
-    _fov = 74;
-    constructor() {
+    _fov = 75;
+    constructor(input) {
+        this.input = input;
     }
     setRenderOpt(opt) {
         this._opt = opt;
@@ -106,8 +118,9 @@ export class Renderer {
             const dx = _v.x - point.x, dy = _v.y - point.y, len = Math.sqrt(dx ** 2 + dy ** 2);
             testPointDist.push([len, surface, point]);
         }
-        const result = testPointDist.sort(([a], [b]) => a - b)[0];
-        if (!result) {
+        const result = testPointDist.reduce((pre, cur) => cur[0] < pre[0] ? cur : pre, [Infinity]);
+        // console.log(result)
+        if (result.length < 2) {
             return null;
         }
         const [len, surface, point] = result;
@@ -117,4 +130,8 @@ export class Renderer {
         const _offset = Math.sqrt((surface.x - point.x) ** 2 + (surface.y - point.y) ** 2);
         return [scale, surface, _offset];
     }
-}
+};
+Renderer = __decorate([
+    __param(0, IInput)
+], Renderer);
+export { Renderer };

@@ -11,10 +11,12 @@ import { IWinManager, WinManager } from '../engine/WindowManager.js';
 import { IGameLoop, GameLoop } from '../engine/GameLoop.js';
 import { InstantiationService, ServiceCollection } from '../di/index.js';
 import { IRenderer, Renderer } from '../engine/Renderer.js';
+import { IInput, Input } from '../engine/Input.js';
 const gameInstantiationCollection = new ServiceCollection([
     [IRenderer, Renderer],
     [IGameLoop, GameLoop],
-    [IWinManager, WinManager, [document.getElementById('display')]]
+    [IWinManager, WinManager, [document.getElementById('display')]],
+    [IInput, Input]
 ], []);
 const service = new InstantiationService(gameInstantiationCollection);
 let Game = class Game {

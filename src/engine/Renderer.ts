@@ -1,5 +1,6 @@
 import { createIdentifier } from '@di'
 import { RenderOpt, IPoint, Surface, Vector } from '@engine/types'
+import { IInput } from '@engine/Input'
 
 export interface IRenderer {
     setRenderScale(ratio: number): void
@@ -16,11 +17,11 @@ export class Renderer implements IRenderer {
     private _ctx?: CanvasRenderingContext2D
     private _opt?: RenderOpt
     private _rendering: boolean = false
-    private _fov: number = 74
+    private _fov: number = 75
 
-    constructor() {
-        
-    }
+    constructor(
+        @IInput private readonly input: IInput
+    ) {}
 
     setRenderOpt(opt: RenderOpt): void {
         this._opt = opt
@@ -159,8 +160,9 @@ export class Renderer implements IRenderer {
 
             testPointDist.push([len, surface, point])
         }
-        const result = testPointDist.sort(([a], [b]) => a - b)[0]
-        if (!result) {
+        const result = testPointDist.reduce((pre, cur) => cur[0] < pre[0] ? cur : pre, [ Infinity ] as any[])
+        // console.log(result)
+        if (result.length < 2) {
             return null
         }
 

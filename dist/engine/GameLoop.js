@@ -10,19 +10,48 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { IRenderer } from '../engine/Renderer.js';
 import { createIdentifier } from '../di/index.js';
 import { Ray, Vector } from '../engine/types.js';
+import { IInput } from '../engine/Input.js';
 export const IGameLoop = createIdentifier('game-loop');
+function vsync(handler) {
+    if (typeof handler !== 'function') {
+        throw 'handler should be type of function';
+    }
+    let timeStamp;
+    let loopid;
+    const onFrameFresh = (ts) => {
+        if (!timeStamp) {
+            timeStamp = ts;
+            loopid = requestAnimationFrame(onFrameFresh);
+        }
+        const dt = ts - timeStamp;
+        timeStamp = ts;
+        handler.call(undefined, dt, ts);
+        loopid = requestAnimationFrame(onFrameFresh);
+    };
+    requestAnimationFrame(onFrameFresh);
+    return {
+        cancel: () => {
+            cancelAnimationFrame(loopid);
+        }
+    };
+}
 let GameLoop = class GameLoop {
     renderer;
-    constructor(renderer) {
+    input;
+    constructor(renderer, input) {
         this.renderer = renderer;
+        this.input = input;
     }
+    renderOpt;
+    speed = 0.5;
     loadScene() {
     }
     startLoop() {
+        this.input.init();
         const renderer = this.renderer;
         const texture = new Image();
         texture.src = './texture.jpg';
-        const renderOpt = {
+        this.renderOpt = {
             light: '#fff',
             sky: 'gray',
             ground: '#aba',
@@ -43,15 +72,15 @@ let GameLoop = class GameLoop {
                     dy: -2,
                     backgroundColor: 'yellow'
                 },
-                // {
-                //     x: -4,
-                //     y: 1,
-                //     dx: 0,
-                //     dy: -2,
-                //     backgroundColor: 'teal',
-                //     source: '',
-                //     clip: [0, 0]
-                // },
+                {
+                    x: -4,
+                    y: 1,
+                    dx: 0,
+                    dy: -2,
+                    backgroundColor: 'teal',
+                    source: '',
+                    clip: [0, 0]
+                },
             ]
         };
         const keys = {
@@ -105,33 +134,60 @@ let GameLoop = class GameLoop {
         window.addEventListener('mousedown', () => {
             document.body.requestPointerLock();
         });
-        renderer.setRenderOpt(renderOpt);
-        const v = renderOpt.view;
-        const loop = () => requestAnimationFrame(() => {
-            if (keys.w) {
-                v.move(Vector.muilti(v, 0.0005));
+        renderer.setRenderOpt(this.renderOpt);
+        const v = this.renderOpt.view;
+        // const loop = () => setTimeout(() => {
+        //     if (keys.w) {
+        //         v.move(Vector.muilti(v, 0.0005))
+        //     }
+        //     if (keys.s) {
+        //         v.move(Vector.muilti(v, -0.0005))
+        //     }
+        //     if (keys.a) {
+        //         v.move(Vector.rotate(Vector.muilti(v, 0.0005), 1.57))
+        //     }
+        //     if (keys.d) {
+        //         v.move(Vector.rotate(Vector.muilti(v, -0.0005), 1.57))
+        //     }
+        //     const {dx, dy} = Vector.rotate(v, keys.mh)
+        //     v.dx = dx
+        //     v.dy = dy
+        //     keys.mh = 0
+        //     // console.log(renderOpt.view)
+        //     loop()
+        // }, 16.6666666)
+        renderer.startRenderLoop();
+        this.startRenderLoop();
+        // loop()
+    }
+    startRenderLoop() {
+        const v = this.renderOpt.view;
+        vsync((dt) => {
+            if (!dt) {
+                return;
             }
-            if (keys.s) {
-                v.move(Vector.muilti(v, -0.0005));
+            const dm = 0.0001 * this.speed * dt;
+            if (this.input.w) {
+                v.move(Vector.muilti(v, dm));
             }
-            if (keys.a) {
-                v.move(Vector.rotate(Vector.muilti(v, 0.0005), 1.57));
+            if (this.input.s) {
+                v.move(Vector.muilti(v, -dm));
             }
-            if (keys.d) {
-                v.move(Vector.rotate(Vector.muilti(v, -0.0005), 1.57));
+            if (this.input.a) {
+                v.move(Vector.rotate(Vector.muilti(v, dm), 1.57));
             }
-            const { dx, dy } = Vector.rotate(v, keys.mh);
+            if (this.input.d) {
+                v.move(Vector.rotate(Vector.muilti(v, -dm), 1.57));
+            }
+            const { dx, dy } = Vector.rotate(v, this.input.mouse.mh);
             v.dx = dx;
             v.dy = dy;
-            keys.mh = 0;
-            // console.log(renderOpt.view)
-            loop();
+            this.input.mouse.mh = 0;
         });
-        renderer.startRenderLoop();
-        loop();
     }
 };
 GameLoop = __decorate([
-    __param(0, IRenderer)
+    __param(0, IRenderer),
+    __param(1, IInput)
 ], GameLoop);
 export { GameLoop };

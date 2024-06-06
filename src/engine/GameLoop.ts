@@ -1,6 +1,7 @@
 import { IRenderer } from '@engine/Renderer'
 import { createIdentifier } from '@di'
-import {Ray, RenderOpt, Vector} from '@engine/types'
+import { Ray, RenderOpt, Vector } from '@engine/types'
+import { IInput } from '@engine/Input';
 
 export interface IGameLoop {
     loadScene(): void
@@ -9,22 +10,57 @@ export interface IGameLoop {
 
 export const IGameLoop = createIdentifier<IGameLoop>('game-loop')
 
+function vsync(handler: (dt: number, ts: number) => void) {
+    if (typeof handler !== 'function') {
+        throw 'handler should be type of function'
+    }
+
+    let timeStamp: number
+    let loopid: number
+    const onFrameFresh = (ts: number) => {
+        if (!timeStamp) {
+            timeStamp = ts
+            loopid = requestAnimationFrame(onFrameFresh)
+        }
+
+        const dt = ts - timeStamp
+        timeStamp = ts
+
+        handler.call(undefined, dt, ts)
+        loopid = requestAnimationFrame(onFrameFresh)
+    }
+
+    requestAnimationFrame(onFrameFresh)
+
+    return {
+        cancel: () => {
+            cancelAnimationFrame(loopid)
+        }
+    }
+}
+
 export class GameLoop implements IGameLoop {
     constructor(
         @IRenderer private readonly renderer: IRenderer,
+        @IInput private readonly input: IInput
     ) {}
+
+    renderOpt: any
+    speed = 0.5
 
     loadScene(): void {
         
     }
 
     startLoop(): void {
+        this.input.init()
+
         const renderer = this.renderer
 
         const texture = new Image()
         texture.src = './texture.jpg'
 
-        const renderOpt = {
+        this.renderOpt = {
             light: '#fff',
             sky: 'gray',
             ground: '#aba',
@@ -45,15 +81,15 @@ export class GameLoop implements IGameLoop {
                     dy: -2,
                     backgroundColor: 'yellow'
                 },
-                // {
-                //     x: -4,
-                //     y: 1,
-                //     dx: 0,
-                //     dy: -2,
-                //     backgroundColor: 'teal',
-                //     source: '',
-                //     clip: [0, 0]
-                // },
+                {
+                    x: -4,
+                    y: 1,
+                    dx: 0,
+                    dy: -2,
+                    backgroundColor: 'teal',
+                    source: '',
+                    clip: [0, 0]
+                },
             ]
         }
 
@@ -109,34 +145,63 @@ export class GameLoop implements IGameLoop {
             document.body.requestPointerLock()
         })
 
-        renderer.setRenderOpt(renderOpt as RenderOpt)
+        renderer.setRenderOpt(this.renderOpt as RenderOpt)
 
-        const v = renderOpt.view
+        const v = this.renderOpt.view
 
-        const loop = () => requestAnimationFrame(() => {
+        // const loop = () => setTimeout(() => {
             
-            if (keys.w) {
-                v.move(Vector.muilti(v, 0.0005))
-            }
-            if (keys.s) {
-                v.move(Vector.muilti(v, -0.0005))
-            }
-            if (keys.a) {
-                v.move(Vector.rotate(Vector.muilti(v, 0.0005), 1.57))
-            }
-            if (keys.d) {
-                v.move(Vector.rotate(Vector.muilti(v, -0.0005), 1.57))
-            }
-            const {dx, dy} = Vector.rotate(v, keys.mh)
-            v.dx = dx
-            v.dy = dy
-            keys.mh = 0
-            // console.log(renderOpt.view)
+        //     if (keys.w) {
+        //         v.move(Vector.muilti(v, 0.0005))
+        //     }
+        //     if (keys.s) {
+        //         v.move(Vector.muilti(v, -0.0005))
+        //     }
+        //     if (keys.a) {
+        //         v.move(Vector.rotate(Vector.muilti(v, 0.0005), 1.57))
+        //     }
+        //     if (keys.d) {
+        //         v.move(Vector.rotate(Vector.muilti(v, -0.0005), 1.57))
+        //     }
+        //     const {dx, dy} = Vector.rotate(v, keys.mh)
+        //     v.dx = dx
+        //     v.dy = dy
+        //     keys.mh = 0
+        //     // console.log(renderOpt.view)
 
-            loop()
-        })
+        //     loop()
+        // }, 16.6666666)
 
         renderer.startRenderLoop()
-        loop()
+        this.startRenderLoop()
+        // loop()
+    }
+
+    startRenderLoop() {
+        const v = this.renderOpt.view
+        vsync((dt) => {
+            if (!dt) {
+                return
+            }
+
+            const dm = 0.0001 * this.speed * dt
+
+            if (this.input.w) {
+                v.move(Vector.muilti(v, dm))
+            }
+            if (this.input.s) {
+                v.move(Vector.muilti(v, -dm))
+            }
+            if (this.input.a) {
+                v.move(Vector.rotate(Vector.muilti(v, dm), 1.57))
+            }
+            if (this.input.d) {
+                v.move(Vector.rotate(Vector.muilti(v, -dm), 1.57))
+            }
+            const {dx, dy} = Vector.rotate(v, this.input.mouse.mh)
+            v.dx = dx
+            v.dy = dy
+            this.input.mouse.mh = 0
+        })
     }
 }
